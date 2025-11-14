@@ -1,0 +1,25 @@
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+/* Dark mode background */
+body {
+  background: #0f0f0f;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 40px;
+}
+
+/* Center the app container */
+#root {
+  width: 100%;
+  max-width: 750px;
+  padding: 20px;
+}
