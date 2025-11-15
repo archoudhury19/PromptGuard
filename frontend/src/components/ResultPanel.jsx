@@ -7,7 +7,9 @@ function ResultPanel({ result }) {
   if (!result) return null;
 
   const safeFlag =
-    result.safe ?? result.analysis?.final_safe;
+    result.safe ??
+    result.analysis?.final_safe ??
+    false;
 
   const reasons =
     result.analysis?.reason || result.reason || [];
@@ -19,54 +21,64 @@ function ResultPanel({ result }) {
     result.analysis?.semantic_score ?? result.semantic_score ?? 0;
 
   return (
-    <div className="resultPanel fadeIn">
-      {/* Badge */}
+    <div className="resultPanel fadeInUp">
+
+      {/* Safety Badge */}
       <div className={`rpBadge ${safeFlag ? "safe" : "unsafe"}`}>
         {safeFlag ? "SAFE ✔" : "UNSAFE ✖"}
       </div>
 
       {/* Reasons */}
       <div className="rpSection">
-        <div className="rpLabel">Reasons:</div>
+        <div className="rpLabel">Reasoning:</div>
         <ul className="rpList">
           {reasons.map((r, i) => (
-            <li key={i}>{r}</li>
+            <li key={i} className="rpListItem">{r}</li>
           ))}
         </ul>
       </div>
 
-      {/* Semantic Score */}
+      {/* Semantic Score Bar */}
       <div className="rpSection">
         <div className="rpLabel">Semantic Score:</div>
 
         <div className="scoreBar">
           <div
             className="scoreFill"
-            style={{ width: `${Math.min(semanticScore * 100, 100)}%` }}
-          ></div>
+            style={{
+              width: `${Math.min(semanticScore * 100, 100)}%`,
+              backgroundColor: semanticScore > 0.85 ? "#dc2626" : "#22c55e",
+            }}
+          />
         </div>
 
-        <div className="scoreValue">{semanticScore}</div>
+        <div className="scoreValue">
+          {semanticScore.toFixed(3)}
+        </div>
       </div>
 
-      {/* Sanitized prompt */}
-      {sanitized && sanitized !== "" && (
+      {/* Sanitized Prompt */}
+      {sanitized && (
         <div className="rpSection">
-          <div className="rpLabel">Sanitized Prompt:</div>
-          <div className="sanitizedBox">{sanitized}</div>
+          <div className="rpLabel">Sanitized Output:</div>
+          <div className="sanitizedBox">
+            {sanitized}
+          </div>
         </div>
       )}
 
-      {/* Toggle JSON */}
+      {/* Raw JSON Toggle */}
       <button
-        className="toggleJSON"
+        className="toggleJSON premiumBtn"
         onClick={() => setShowJSON(!showJSON)}
       >
-        {showJSON ? "Hide JSON ▲" : "Show Raw JSON ▼"}
+        {showJSON ? "Hide Raw JSON ▲" : "Show Raw JSON ▼"}
       </button>
 
       {showJSON && (
-        <pre className="jsonRaw">{JSON.stringify(result, null, 2)}</pre>
+        <pre className="jsonRaw glassBox">
+          {JSON.stringify(result, null, 2)}
+        </pre>
       )}
     </div>
   );

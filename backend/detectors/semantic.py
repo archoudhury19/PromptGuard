@@ -1,23 +1,24 @@
 # backend/detectors/semantic.py
 
 """
-Improved Semantic Detector for PromptGuard.
+Semantic Detector for PromptGuard (final version).
 --------------------------------------------------
 ✓ Reduced false positives
 ✓ Pre-encoded malicious vectors (faster inference)
 ✓ Aligned with analyzer threshold (0.85)
 ✓ Added safety for educational context
-✓ Cleaner output for logging & debugging
+✓ Added lightweight keyword semantic danger fallback
+✓ Cleaner output & robust return format
 """
 
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
-# Load model once globally
+# Load model globally once
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Known malicious meanings (semantic intent patterns)
+# Malicious intent patterns (semantic meaning)
 KNOWN_MALICIOUS_PROMPTS = [
     "ignore previous instructions",
     "bypass content filters",
@@ -28,23 +29,29 @@ KNOWN_MALICIOUS_PROMPTS = [
     "jailbreak the AI model",
 ]
 
-# Pre-encode malicious vectors ONCE
+# Pre-encode malicious vectors ONCE (performance boost)
 MALICIOUS_VECS = model.encode(KNOWN_MALICIOUS_PROMPTS)
 
-
-# Same educational keywords as in rules.py
+# Educational override keywords (matches rules.py)
 SAFE_CONTEXT_KEYWORDS = [
-    "educational", "research", "academic",
-    "study", "for learning", "for safety",
-    "explain", "history", "science", "engineering",
+    "educational", "research", "academic", "study",
+    "for learning", "for safety", "explain",
+    "history", "science", "engineering",
+]
+
+# Lightweight fallback danger keywords
+# (Catches some semi-malicious cases if semantic match is low)
+SEMANTIC_DANGER_KEYWORDS = [
+    "bypass", "jailbreak", "break free", "disable safety",
+    "hack", "steal", "illegal", "leak", "override"
 ]
 
 
 def check_semantic(prompt: str, threshold: float = 0.85) -> dict:
     """
-    Checks if the user's prompt semantically resembles malicious intent.
+    Determines whether the prompt semantically resembles dangerous intent.
 
-    Returns:
+    Returns dict with guaranteed keys:
         {
             "safe": bool,
             "score": float,
@@ -54,40 +61,39 @@ def check_semantic(prompt: str, threshold: float = 0.85) -> dict:
 
     cleaned = prompt.strip().lower()
 
-    # ---------------------------------
-    # 1. Handle empty / meaningless prompts
-    # ---------------------------------
+    # 1. Empty prompt safe
     if not cleaned:
         return {"safe": True, "score": 0.0, "matched_prompt": None}
 
-    # ---------------------------------
-    # 2. EDUCATIONAL OVERRIDE (reduces false positives)
-    # ---------------------------------
+    # 2. Educational override
     for word in SAFE_CONTEXT_KEYWORDS:
         if word in cleaned:
+            return {"safe": True, "score": 0.0, "matched_prompt": None}
+
+    # 3. Keyword-based danger fallback (lightweight)
+    for kw in SEMANTIC_DANGER_KEYWORDS:
+        if kw in cleaned:
             return {
-                "safe": True,
-                "score": 0.0,
-                "matched_prompt": None
+                "safe": False,
+                "score": threshold + 0.01,   # minimal risk score, over threshold
+                "matched_prompt": kw
             }
 
-    # ---------------------------------
-    # 3. Encode only the user prompt
-    # ---------------------------------
-    user_vec = model.encode([prompt])[0].reshape(1, -1)
+    # 4. Encode the user prompt meaning
+    try:
+        user_vec = model.encode([cleaned])[0].reshape(1, -1)
+    except Exception:
+        # Fail-safe: never let semantic failure break the firewall
+        return {"safe": True, "score": 0.0, "matched_prompt": None}
 
-    # ---------------------------------
-    # 4. Compute cosine similarities
-    # ---------------------------------
+    # 5. Compute cosine similarities
     similarities = cosine_similarity(user_vec, MALICIOUS_VECS)[0]
 
     max_score = float(np.max(similarities))
     match_index = int(np.argmax(similarities))
     matched_prompt = KNOWN_MALICIOUS_PROMPTS[match_index]
 
-    # ---------------------------------
-    # 5. Determine safety
-    # ---------------------------------
+    # 6. Determine safety
     safe = max_score < threshold
 
     return {
