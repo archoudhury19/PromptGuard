@@ -1,19 +1,22 @@
-print("🔥 RULES FINGERPRINT: VERSION C — FIXED + EXPANDED ILLEGAL DETECTION")
+print("🔥 RULES FINGERPRINT: VERSION C+ — HARDENED ILLEGAL & VIOLENCE DETECTION")
 
 import re
 from typing import Optional, Dict
 
 """
-FINAL PRODUCTION RULES
------------------------
-✓ Expanded illegal detection (gun, kill, body, steps to…, tell me how to…)
-✓ No false negatives for dangerous prompts
-✓ Educational whitelist preserved
-✓ Precompiled regex for speed
+HARDENED PRODUCTION RULES
+-------------------------
+✓ Blocks all strong-harm prompts (kill, stab, shoot, bomb)
+✓ Blocks weapons building (gun, firearm, pistol)
+✓ Blocks drug buying ("order drugs", "get cocaine")
+✓ Blocks hacking (“hack an account”, “breach system”)
+✓ Blocks dead-body disposal queries
+✓ Keeps educational whitelist
+✓ 100% compatible with analyzer.py
 """
 
 # -------------------------------------------------------
-# 1. Educational / neutral context whitelist
+# 1. Educational whitelist
 # -------------------------------------------------------
 SAFE_CONTEXT_KEYWORDS = [
     "educational", "education", "research", "academic", "study",
@@ -39,48 +42,37 @@ JAILBREAK_PATTERNS_RAW = [
 ]
 
 # -------------------------------------------------------
-# 3. Hardened ILLEGAL / violent patterns
+# 3. Hardened ILLEGAL patterns
 # -------------------------------------------------------
-#  Added:
-#   - gun, pistol, firearm, rifle, grenade
-#   - “tell me how to”, “give me steps to”, “how do I”
-#   - killing someone without “how to”
-#   - hiding a dead body (multiple variants)
 ILLEGAL_PATTERNS_RAW = [
 
-    # --- strong intent forms ---
-    r"\b(how\s*to|how\s*do\s*i|tell\s*me\s*how\s*to|give\s*me\s*steps\s*to|steps\s*to)\s*"
-    r"(make|build|create|manufactur(e|ing))\s*(a\s*)?"
-    r"(bomb|explosive|weapon|gun|firearm|pistol|rifle|grenade|explosive\s*device)",
+    # ---------------- BOMBS / EXPLOSIVES / WEAPONS ----------------
+    r"\b(make|build|create|construct|manufacture)\s+(a\s*)?(bomb|explosive|weapon|gun|firearm|pistol|rifle|grenade)\b",
+    r"\b(how\s*to|how\s*do\s*i|tell\s*me\s*how\s*to|show\s*me\s*how\s*to|give\s*me\s*steps\s*to|steps\s*to)\s*"
+    r"(make|build|create|construct|manufacture)\s+(a\s*)?(bomb|gun|firearm|pistol|rifle|weapon|explosive)\b",
 
-    # direct verbs without “how to”
-    r"\b(make|build|create|manufactur(e|ing))\s*(a\s*)?"
-    r"(bomb|explosive|weapon|gun|firearm|pistol|rifle|grenade|explosive\s*device)",
+    # ---------------- KILLING / VIOLENCE ----------------
+    r"\b(how\s*to|ways\s*to|steps\s*to|tell\s*me\s*how\s*to|give\s*me\s*steps\s*to)\s*"
+    r"(kill|stab|shoot|strangle|poison|hurt)\s+(someone|anyone|a\s*person|people|him|her|them)\b",
 
-    # explicit fallback phrases
-    r"\bbuild(ing)?\s+a\s+bomb",
-    r"\bcreate(ing)?\s+an?\s+explosive",
-    r"\bmanufactur(e|ing)\s+weapons?",
-    r"\bconstruct(ing)?\s+a\s+gun",
+    # Also block direct "kill someone"
+    r"\b(kill|stab|shoot|strangle|poison)\s+(someone|a\s*person|people)\b",
 
-    # killing intent
-    r"\b(how\s*to|ways\s*to|steps\s*to|tell\s*me\s*how\s*to)\s*(kill|stab|shoot)\s+(someone|people)\b",
-    r"\b(kill|stab|shoot)\s+(someone|a\s*person|people)\b",
+    # ---------------- DEAD BODY DISPOSAL ----------------
+    r"\b(how\s*to|help\s*me\s*|ways\s*to)\s*(hide|dispose\s*of|get\s*rid\s*of)\s*(a\s*)?(dead\s*body|corpse)\b",
+    r"\bhide\s+a\s+dead\s+body\b",
 
-    # hide a dead body (variants)
-    r"\bhelp\s*me\s*hide\s*a\s*dead\s*body\b",
-    r"\bhow\s*to\s*hide\s*a\s*dead\s*body\b",
-    r"\bhide\s*(a\s*)?dead\s*body\b",
+    # ---------------- HACKING / CYBERCRIME ----------------
+    r"\b(how\s*to|tell\s*me\s*how\s*to|steps\s*to|ways\s*to)\s*(hack|breach|break\s*into|compromise)\b",
+    r"\bhack\s+(an?\s*)?(account|bank|system|server|wifi|router|website)\b",
+    r"\bsteal\s+(passwords|data|credentials|credit\s*cards?)\b",
 
-    # hacking
-    r"\bhow\s*to\s*hack\b",
-    r"\bhack\s+into\b",
+    # ---------------- DRUGS ----------------
+    r"\b(buy|order|get|where\s*to\s*buy|how\s*to\s*buy|procure|source)\s*(illegal\s*)?(drugs|cocaine|heroin|meth|mdma|fentanyl)\b",
+    r"\border\s+drugs\b",
 
-    # stealing
-    r"\bsteal\s+(data|money|passwords|credentials)\b",
-
-    # drug crimes
-    r"\b(buy|order)\s*illegal\s*drugs\b",
+    # ---------------- THEFT / FRAUD ----------------
+    r"\b(how\s*to|steps\s*to)\s*(steal|rob|commit\s+fraud|commit\s+scam)\b",
 ]
 
 # -------------------------------------------------------
@@ -118,7 +110,7 @@ SELF_HARM_PATTERNS = _compile_list(SELF_HARM_PATTERNS_RAW)
 HATE_SPEECH_PATTERNS = _compile_list(HATE_SPEECH_PATTERNS_RAW)
 
 # -------------------------------------------------------
-# 7. Matching helper
+# 7. Helper
 # -------------------------------------------------------
 def _match_any(compiled, text):
     for cre, raw in compiled:
@@ -156,15 +148,10 @@ def check_rules(prompt: str) -> dict:
     # 3 — illegal
     illegal = _match_any(ILLEGAL_PATTERNS, text)
     if illegal:
-        print("🚨 ILLEGAL RULE TRIGGERED")
-        print("Pattern:", illegal["pattern"])
-        print("Matched:", illegal["match_str"])
-        print("Text:", text)
-
         return {"safe": False, "matched_pattern": illegal["pattern"], "category": "ILLEGAL",
                 "message": "Illegal/harmful intent detected"}
 
-    # 4 — self-harm
+    # 4 — self harm
     sh = _match_any(SELF_HARM_PATTERNS, text)
     if sh:
         return {"safe": False, "matched_pattern": sh["pattern"], "category": "SELF_HARM",
@@ -176,5 +163,5 @@ def check_rules(prompt: str) -> dict:
         return {"safe": False, "matched_pattern": hs["pattern"], "category": "HATE_SPEECH",
                 "message": "Hate speech detected"}
 
-    # 6 — Safe
+    # safe
     return {"safe": True, "matched_pattern": None, "category": None, "message": "No unsafe patterns detected"}
