@@ -4,29 +4,30 @@ from copy import deepcopy
 from backend.detectors.rules import check_rules
 
 # -----------------------------------------------------
-# 🔥 AUTO-DETECT WHICH SEMANTIC ENGINE TO IMPORT
-#    Heavy model (local) → semantic_heavy.py
-#    Light model (cloud) → semantic_light.py
+# 🔥 AUTO-DETECT SEMANTIC ENGINE (heavy → light fallback)
 # -----------------------------------------------------
 try:
-    # Try heavy model first (only works locally)
     from backend.detectors.semantic_heavy import check_semantic
     print("🔍 Semantic Engine: HEAVY (MPNet) — Local Mode")
-except ImportError:
-    # Fallback for Railway / Render
+except Exception:
     from backend.detectors.semantic_light import check_semantic
     print("🔍 Semantic Engine: LIGHT (Keyword + Heuristics) — Cloud Mode")
 
+# -----------------------------------------------------
+# 🔥 AUTO-DETECT SANITIZER (heavy → light fallback)
+# -----------------------------------------------------
 from backend.detectors.sanitizer import sanitize_prompt
+
 from backend.detectors.logger import log_event
 
 """
 FINAL ANALYZER — VERSION S
 --------------------------
-✓ Supports dual semantic models
-✓ Heavy model locally (MPNet)
-✓ Lightweight model in cloud
-✓ No crashes due to sklearn/sentence-transformers
+✓ Heavy semantic locally
+✓ Light semantic in cloud
+✓ Heavy sanitizer locally
+✓ Light sanitizer in cloud
+✓ No sklearn/sentence-transformers in railway
 """
 
 SEMANTIC_THRESHOLD = 0.78
@@ -74,6 +75,7 @@ def analyze_prompt(prompt: str) -> dict:
     norm_rule = _normalize_rule_result(raw_rule)
     rule_effective = deepcopy(norm_rule)
 
+    # Educational override
     if (norm_rule.get("message") or "").startswith("Educational context"):
         result = {
             "final_safe": True,
@@ -101,8 +103,11 @@ def analyze_prompt(prompt: str) -> dict:
     elif semantic_score >= 0.75:
         SEVERITY = "MEDIUM"
 
-    # Second-chance override
+    # ---------------------------------------
+    # Second-chance override (non-protected)
+    # ---------------------------------------
     original_category = (norm_rule.get("category") or "").upper()
+
     if (not norm_rule.get("safe", True)) and (semantic_score < SECOND_CHANCE_THRESHOLD):
         if original_category not in PROTECTED_CATEGORIES:
             rule_effective["safe"] = True
@@ -115,6 +120,7 @@ def analyze_prompt(prompt: str) -> dict:
     else:
         final_safe = not semantic_unsafe
 
+    # REASONS
     reasons = []
     if not rule_effective.get("safe", True):
         reasons.append(f"Rule-based block: {rule_effective.get('message')}")

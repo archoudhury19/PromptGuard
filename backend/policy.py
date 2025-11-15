@@ -1,5 +1,5 @@
 from detectors.rules import check_prompt
-from detectors.sanitizer import sanitize_prompt
+from sanitizer_heavy import sanitize_prompt
 from semantic_heavy import is_semantically_dangerous
 
 def analyze_prompt(prompt: str):
