@@ -1,20 +1,25 @@
-﻿# 🔐 PromptGuard  
-An AI-powered prompt safety firewall that detects jailbreak attempts, illegal intent, harmful queries, and unsafe semantic patterns using rule-based + semantic-level analysis.
+﻿# 🔐 **PromptGuard**
+
+*An AI-powered prompt-safety firewall that detects jailbreaks, illegal intent, harmful queries, and unsafe semantic behavior — using hybrid rule-based + semantic analysis.*
 
 ---
 
-## 🌟 Features  
+## 🌟 **Features**
 
-- 🚧 **Rule-Based Firewall** (expanded illegal detection, jailbreak patterns, self-harm, hate-speech)  
-- 🧠 **Semantic Analyzer** using MiniLM embeddings (detects meaning-level dangerous intent)  
-- 🔎 **Sanitizer Engine** to rewrite unsafe prompts safely  
-- 🖥️ **React Frontend** with dark/light mode, status indicators, and animated UI  
-- ⚡ **Real-time API Health Monitoring**  
-- 📊 **Detailed Result Panel** (semantic score bar, reasons, sanitized prompt, raw JSON)
+* 🚧 **Rule-Based Firewall** (illegal intent, jailbreak detection, violence, self-harm, hate-speech, hacking, drug orders)
+* 🧠 **Semantic Analyzer**
+
+  * Cloud mode → MiniLM (lightweight)
+  * Local mode → MPNet (high accuracy)
+* 🔄 **Auto-switching semantic engine** depending on environment
+* 🔎 **Sanitizer Engine** to rewrite unsafe prompts
+* 🎨 **Modern React Frontend** with animations & dark/light mode
+* ⚡ **Real-time API health monitoring**
+* 📊 **Detailed Analysis Output** (score, reasons, sanitized text, raw JSON)
 
 ---
 
-## 📁 Project Structure  
+## 📁 **Project Structure**
 
 ```
 PromptGuard/
@@ -24,16 +29,17 @@ PromptGuard/
 │   ├── detectors/
 │   │   ├── analyzer.py
 │   │   ├── rules.py
-│   │   ├── semantic.py
+│   │   ├── semantic_light.py
+│   │   ├── semantic_heavy.py
 │   │   ├── sanitizer.py
 │   │   ├── logger.py
-│   └── tests/
+│   └── requirements.txt
 │
 ├── frontend/
 │   ├── src/App.jsx
 │   ├── components/ResultPanel.jsx
+│   ├── components/HistoryPanel.jsx
 │   ├── App.css
-│   └── ResultPanel.css
 │
 ├── README.md
 └── .gitignore
@@ -41,16 +47,9 @@ PromptGuard/
 
 ---
 
-# 🛠️ Installation & Setup
+# 🛠️ **Local Installation**
 
-> **Prerequisites**
-- Python 3.10+
-- Node.js 18+
-- Git installed
-
----
-
-### **1️⃣ Clone the Repository**
+## **1️⃣ Clone Repository**
 
 ```bash
 git clone https://github.com/archoudhury19/PromptGuard.git
@@ -59,12 +58,12 @@ cd PromptGuard
 
 ---
 
-### **2️⃣ Backend Setup (FastAPI)**
+# **2️⃣ Backend Setup (FastAPI)**
 
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate   # Windows
 pip install -r requirements.txt
 uvicorn api:app --reload --port 9000
 ```
@@ -77,7 +76,7 @@ http://127.0.0.1:9000
 
 ---
 
-### **3️⃣ Frontend Setup (React + Vite)**
+# **3️⃣ Frontend Setup (React + Vite)**
 
 ```bash
 cd frontend
@@ -93,90 +92,112 @@ http://127.0.0.1:5173
 
 ---
 
-# 🚀 Deployment Guide (Step-by-Step)
+# 🚀 **Deployment Guide**
 
-You can deploy PromptGuard in 2 ways:
-
----
-
-## **A. Deploy Backend on Render (Free Tier)**
-
-1. Push your project to GitHub  
-2. Go to **https://render.com**  
-3. Click **New Web Service**  
-4. Select repo → choose `backend/` folder  
-5. Set:
-   - Runtime: **Python**
-   - Start Command:  
-     ```bash
-     uvicorn api:app --host 0.0.0.0 --port 10000
-     ```
-6. Deploy  
-7. Copy Render backend URL (example):  
-   ```
-   https://promptguard-backend.onrender.com
-   ```
+You can deploy PromptGuard using **free services**.
 
 ---
 
-## **B. Deploy Frontend on Vercel**
+# ⚙️ **A. Backend Deployment (Railway)**
 
-1. Go to **https://vercel.com**  
-2. "Add New Project" → Select your repo  
-3. Select `frontend/` folder  
-4. Build Command:
-   ```
-   npm install
-   npm run build
-   ```
-5. Add environment variable:
+1. Push project to GitHub
+2. Go to: [https://railway.app](https://railway.app)
+3. Create **New Service → Deploy from Repo**
+4. Set **Build Root** to:
 
-   ```
-   VITE_BACKEND_URL=https://promptguard-backend.onrender.com
-   ```
+```
+backend
+```
 
-6. Deploy 🎉
+5. Railway auto-detects Python
+6. Ensure your **Procfile** exists:
+
+```
+web: uvicorn api:app --host 0.0.0.0 --port $PORT
+```
+
+7. Add environment variable:
+
+```
+GEMINI_API_KEY=your-key
+```
+
+8. Deploy
+9. Copy backend URL, example:
+
+```
+https://promptguard-production.up.railway.app
+```
 
 ---
 
-# 👨‍💻 Author
+# 🌐 **B. Frontend Deployment (Netlify)**
 
-**Ankur Ray Choudhury**  
-Developer • AI & Security Enthusiast  
-India  
+1. Visit [https://app.netlify.com](https://app.netlify.com)
+2. “Add New Site” → “Import from GitHub”
+3. Set **Base directory**:
 
-GitHub: https://github.com/archoudhury19  
+```
+frontend
+```
+
+4. Build command:
+
+```
+npm run build
+```
+
+5. Publish directory:
+
+```
+dist
+```
+
+6. Add Env Variable:
+
+```
+VITE_API_URL=https://promptguard-production.up.railway.app
+```
+
+7. Deploy 🎉
 
 ---
 
-# 🤝 Contribution
+# 👨‍💻 **Author**
+
+**Ankur Ray Choudhury**
+AI & Security Enthusiast — India
+
+GitHub:
+[https://github.com/archoudhury19](https://github.com/archoudhury19)
+
+---
+
+# 🤝 **Contributing**
 
 Contributions are welcome!
 
-If you want to submit improvements:
-
-1. Fork this repo  
-2. Create a new branch  
-3. Commit changes  
-4. Open a Pull Request  
+1. Fork the repo
+2. Create a feature branch
+3. Commit changes
+4. Open a Pull Request
 
 ---
 
-# 💬 Feedback  
+# 💬 **Feedback**
 
-If you want to suggest improvements, open an **Issue** or contact:
+Have suggestions?
 
-📧 Email: *your email here*  
-🐙 GitHub Issues: https://github.com/archoudhury19/PromptGuard/issues
+📌 GitHub Issues:
+[https://github.com/archoudhury19/PromptGuard/issues](https://github.com/archoudhury19/PromptGuard/issues)
 
 ---
 
-# 🙏 Acknowledgements  
+# 🙏 **Acknowledgements**
 
-- **SentenceTransformers** for embedding models  
-- **FastAPI** for backend  
-- **React + Vite** for frontend  
-- **Google GDG FIEM** for hosting the Hack-to-Hire Ideathon  
-- Special thanks to mentors & friends who inspired and reviewed the project  
+* SentenceTransformers
+* FastAPI
+* React + Vite
+* Google GDG FIEM — Hack-to-Hire Ideathon
 
 ---
