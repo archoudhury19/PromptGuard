@@ -1,8 +1,12 @@
-print("🔥🔥 API FILE EXECUTED FROM:", __file__)
+print("🔥 API STARTED FROM:", __file__)
+
 """
-PromptGuard API
-Unified endpoint for rule-based, semantic, and Gemini-powered prompt analysis.
-Now uses Gemini REST API to avoid SDK key issues.
+PromptGuard API — Render Deployment Ready
+-----------------------------------------
+✓ Dynamic PORT support (Render uses $PORT)
+✓ Safe import structure (no backend-relative issues)
+✓ Clean CORS
+✓ Analyzer integrated normally
 """
 
 import os
@@ -12,116 +16,111 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# ---------------------------------------------------------------
-# 🔥 DEBUG: PRINT EXACT ANALYZER + RULES FILE BEING LOADED
-# ---------------------------------------------------------------
-import inspect
-import backend.detectors.analyzer as ANALYZER_MODULE
-import backend.detectors.rules as RULES_MODULE
+# -----------------------------
+# Ensure backend folder is discoverable
+# -----------------------------
+import sys
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # /backend
+ROOT_DIR = os.path.dirname(BASE_DIR)                    # /
+if ROOT_DIR not in sys.path:
+    sys.path.append(ROOT_DIR)
 
-print("\n\n==============================")
-print("🔥 USING ANALYZER FROM:", inspect.getfile(ANALYZER_MODULE))
-print("🔥 USING RULES     FROM:", inspect.getfile(RULES_MODULE))
-print("==============================\n\n")
-
-# ---------------------------------------------------------------
-# Local Imports
-# ---------------------------------------------------------------
+# -----------------------------
+# Imports AFTER fixing sys.path
+# -----------------------------
 from backend.detectors.analyzer import analyze_prompt
 
-# ---------------------------------------------------------------
-# Load environment variables
-# ---------------------------------------------------------------
+# -----------------------------
+# Load .env (Gemini key optional)
+# -----------------------------
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
-
 if not API_KEY:
-    print("⚠️  Warning: No Gemini API key found — only local analysis will run.")
+    print("⚠ No Gemini API key found — only local analysis will run.")
 
-# ---------------------------------------------------------------
-# FastAPI Configuration
-# ---------------------------------------------------------------
+# -----------------------------
+# FastAPI App
+# -----------------------------
 app = FastAPI(
     title="PromptGuard API",
-    description="AI Prompt Firewall combining rule-based and semantic analysis with Gemini integration.",
-    version="1.1.0",
+    description="AI Prompt Firewall combining rule-based and semantic analysis with Gemini.",
+    version="2.0.0",
 )
 
-# Enable CORS for frontend access
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],   # frontend on any domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ---------------------------------------------------------------
-# Request Model
-# ---------------------------------------------------------------
+# -----------------------------
+# Models
+# -----------------------------
 class PromptRequest(BaseModel):
     prompt: str
 
-# ---------------------------------------------------------------
+# -----------------------------
 # Routes
-# ---------------------------------------------------------------
+# -----------------------------
 @app.get("/")
 def home():
-    """Health-check endpoint."""
-    return {"message": "✅ PromptGuard API is running successfully!"}
-
+    return {"status": "OK", "message": "🔥 PromptGuard API is online!"}
 
 @app.post("/analyze")
 def analyze_and_respond(data: PromptRequest):
-    """
-    1️⃣  Run rule + semantic + sanitization checks.
-    2️⃣  If safe and Gemini key present, forward to Gemini via REST API.
-    3️⃣  Otherwise return local analysis only.
-    """
+
     prompt = data.prompt
     analysis = analyze_prompt(prompt)
 
-    # 🚫 Unsafe prompt → block immediately
+    # Unsafe prompt → block
     if not analysis["final_safe"]:
         return {
             "safe": False,
             "reason": analysis["reason"],
             "sanitized": analysis["sanitized"],
-            "response": "🚫 Prompt blocked: unsafe or malicious content detected.",
+            "response": "🚫 Prompt blocked due to unsafe content."
         }
 
-    # ✅ Safe prompt → use Gemini REST API (if configured)
+    # If safe + Gemini key exists → call Gemini
     if API_KEY:
         try:
             url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+            payload = {
+                "contents": [
+                    {"parts": [{"text": prompt}]}
+                ]
+            }
             headers = {"Content-Type": "application/json"}
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
-            response = requests.post(f"{url}?key={API_KEY}", headers=headers, json=payload)
+            res = requests.post(f"{url}?key={API_KEY}", json=payload, headers=headers)
+            data = res.json()
 
-            if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail=response.text)
-
-            data = response.json()
             text = (
                 data.get("candidates", [{}])[0]
-                .get("content", {})
-                .get("parts", [{}])[0]
-                .get("text", "⚠️ No text in response.")
+                    .get("content", {})
+                    .get("parts", [{}])[0]
+                    .get("text", "⚠ No text returned")
             )
 
-            return {
-                "safe": True,
-                "analysis": analysis,
-                "response": text.strip(),
-            }
+            return {"safe": True, "analysis": analysis, "response": text}
 
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error calling Gemini REST API: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
 
-    # 💡 If no API key, only local analysis
+    # No Gemini key → local only
     return {
         "safe": True,
         "analysis": analysis,
-        "response": "✅ Prompt is safe, but Gemini API not configured.",
+        "response": "⚠ Gemini not configured — returning local analysis only."
     }
+
+# -----------------------------
+# FOR RENDER: Auto-run uvicorn
+# -----------------------------
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 10000))   # Render gives $PORT
+    uvicorn.run(app, host="0.0.0.0", port=port)
