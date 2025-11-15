@@ -23,6 +23,12 @@ body.dark-mode {
   padding: 40px 20px;
 }
 
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 20px 14px;
+  }
+}
+
 
 /* ===========================
    HEADER
@@ -40,17 +46,27 @@ body.dark-mode {
   font-weight: 700;
   letter-spacing: -1px;
   background: linear-gradient(90deg, #3b82f6, #22c55e);
-
-  background-clip: text;             /* ← Standard version (no effect, but removes warning) */
-  -webkit-background-clip: text;     /* ← Real working one */
+  background-clip: text;
+  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+@media (max-width: 600px) {
+  .logo {
+    font-size: 26px;
+  }
+}
 
 .rightControls {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .rightControls {
+    gap: 8px;
+  }
 }
 
 .themeToggle {
@@ -68,6 +84,13 @@ body.dark-mode {
   background: #2563eb;
 }
 
+@media (max-width: 600px) {
+  .themeToggle {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
 
 /* ===========================
    CARD (Glass Panel)
@@ -81,6 +104,12 @@ body.dark-mode {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255,255,255,0.08);
   animation: fadeSlide 0.6s ease forwards;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 20px;
+  }
 }
 
 .fadeInUp {
@@ -122,6 +151,13 @@ body.dark-mode {
   background: rgba(255,255,255,0.10);
 }
 
+@media (max-width: 600px) {
+  .promptBox {
+    height: 110px;
+    font-size: 15px;
+  }
+}
+
 
 /* ===========================
    BUTTON
@@ -148,6 +184,13 @@ body.dark-mode {
 .analyzeBtn:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+@media (max-width: 600px) {
+  .analyzeBtn {
+    padding: 12px;
+    font-size: 15px;
+  }
 }
 
 
@@ -190,6 +233,13 @@ body.dark-mode {
   overflow-x: auto;
   font-size: 14px;
   border: 1px solid rgba(255,255,255,0.12);
+}
+
+@media (max-width: 600px) {
+  .jsonBox {
+    font-size: 12px;
+    padding: 14px;
+  }
 }
 
 
@@ -245,6 +295,12 @@ body.dark-mode {
 .skeleton.box {
   height: 160px;
   border-radius: 12px;
+}
+
+@media (max-width: 600px) {
+  .skeleton.box {
+    height: 120px;
+  }
 }
 
 @keyframes shimmer {
