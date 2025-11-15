@@ -3,6 +3,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "./backend/start.sh"
+    "startCommand": ""
   }
 }
