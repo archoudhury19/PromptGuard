@@ -35,7 +35,7 @@ if ROOT_DIR not in sys.path:
 CLOUD = os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RENDER")
 if CLOUD:
     print("🌐 Cloud detected → Using semantic_light")
-    from semantic_light import check_semantic
+    from backend.detectors.semantic import check_semantic
 else:
     print("💻 Local environment → Using semantic_heavy")
     from semantic_heavy import check_semantic
