@@ -1,10 +1,12 @@
 print("🔥 API STARTED FROM:", __file__)
 
 """
-PromptGuard API — Cloud Deployment Ready
-----------------------------------------
-✓ Works on Railway / Render / Fly.io
-✓ Dynamic PORT support
+PromptGuard API — Cloud Deployment Ready (FINAL)
+------------------------------------------------
+✓ Auto-detects cloud → forces semantic_light
+✓ Local PC → semantic_heavy works normally
+✓ Fully Railway/Render/Fly.io compatible
+✓ Dynamic PORT
 ✓ Safe backend imports
 ✓ Gemini optional
 """
@@ -26,8 +28,21 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 # -------------------------------------------------------
-# Import analyzer AFTER sys.path fix
+# Select semantic model automatically
+# Cloud → use lightweight
+# Local PC → heavy model works
 # -------------------------------------------------------
+CLOUD = os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RENDER")
+if CLOUD:
+    print("🌐 Cloud detected → Using semantic_light")
+    from semantic_light import check_semantic
+else:
+    print("💻 Local environment → Using semantic_heavy")
+    from semantic_heavy import check_semantic
+
+# Patch analyzer to use correct semantic
+from backend.detectors import analyzer
+analyzer.check_semantic = check_semantic
 from backend.detectors.analyzer import analyze_prompt
 
 # -------------------------------------------------------
@@ -44,14 +59,14 @@ if not API_KEY:
 # -------------------------------------------------------
 app = FastAPI(
     title="PromptGuard API",
-    version="2.0.1",
+    version="2.0.2",
     description="AI Prompt Firewall combining rules + semantic analysis.",
 )
 
 # CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # allow all (frontend will run on separate domain)
+    allow_origins=["*"],   # allow all (frontend will run on another domain)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,7 +107,7 @@ def analyze_route(data: PromptRequest):
             "response": "⚠ Gemini not configured — only local AI analysis executed.",
         }
 
-    # If Gemini exists → call Gemini safely
+    # If Gemini exists → call Gemini safely (REST API)
     try:
         url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
         payload = {
@@ -119,6 +134,7 @@ def analyze_route(data: PromptRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Gemini API error: {e}")
 
+
 # -------------------------------------------------------
 # Local development runner (Railway ignores this)
 # -------------------------------------------------------
@@ -127,5 +143,5 @@ if __name__ == "__main__":
     uvicorn.run(
         app,
         host="0.0.0.0",
-        port=int(os.getenv("PORT", 9000))   # railway sets PORT automatically
+        port=int(os.getenv("PORT", 9000))   # Railway sets PORT automatically
     )

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath("."))
 
 from backend.detectors.analyzer import analyze_prompt
 from backend.detectors.rules import check_rules
-from backend.detectors.semantic import check_semantic
+from semantic_heavy import check_semantic
 
 print("\n==============================")
 print("   🔥 ANALYZER TEST SUITE")

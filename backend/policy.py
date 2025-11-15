@@ -1,6 +1,6 @@
 from detectors.rules import check_prompt
 from detectors.sanitizer import sanitize_prompt
-from detectors.semantic import is_semantically_dangerous
+from semantic_heavy import is_semantically_dangerous
 
 def analyze_prompt(prompt: str):
     """
