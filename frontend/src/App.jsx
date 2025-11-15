@@ -11,8 +11,11 @@ function App() {
   const [dark, setDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [apiStatus, setApiStatus] = useState("checking"); 
+  const [apiStatus, setApiStatus] = useState("checking");
   // checking | online | offline
+
+  // 🔥 Get API URL from .env
+  const API = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     document.body.className = dark ? "dark-mode" : "light-mode";
@@ -21,7 +24,7 @@ function App() {
   // API HEALTH CHECK
   async function checkAPI() {
     try {
-      const res = await fetch("http://127.0.0.1:9000/");
+      const res = await fetch(`${API}/`);
       setApiStatus(res.ok ? "online" : "offline");
     } catch {
       setApiStatus("offline");
@@ -40,7 +43,7 @@ function App() {
     setResult(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:9000/analyze", {
+      const res = await fetch(`${API}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
@@ -49,7 +52,6 @@ function App() {
       const data = await res.json();
       setResult(data);
 
-      // Save to history
       setHistory((prev) => [
         {
           prompt,
@@ -58,7 +60,6 @@ function App() {
         },
         ...prev,
       ]);
-
     } catch {
       setResult({ error: "Backend unreachable" });
     }
@@ -68,29 +69,23 @@ function App() {
 
   return (
     <div className="wrapper">
-
       {/* Header */}
       <header className="header fadeIn">
         <h1 className="logo">PromptGuard</h1>
 
         <div className="rightControls">
-
-          {/* History Button */}
           <button className="themeToggle" onClick={() => setSidebarOpen(true)}>
             📜 History
           </button>
 
-          {/* API Dot */}
           <div className={`apiDot ${apiStatus}`} title={`API: ${apiStatus}`} />
 
-          {/* Theme Toggle */}
           <button className="themeToggle" onClick={() => setDark(!dark)}>
             {dark ? "🌞 Light" : "🌙 Dark"}
           </button>
         </div>
       </header>
 
-      {/* Main Card */}
       <div className="card fadeInUp">
         <textarea
           className="promptBox"
@@ -110,7 +105,6 @@ function App() {
         <ResultPanel loading={loading} result={result} />
       </div>
 
-      {/* Sidebar */}
       <HistoryPanel
         history={history}
         open={sidebarOpen}
