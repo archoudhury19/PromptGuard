@@ -1,1 +1,1 @@
-web: python backend/api.py
+web: python -m backend.api
