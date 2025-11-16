@@ -1,103 +1,65 @@
-# backend/detectors/semantic.py
-
 """
-Semantic Detector for PromptGuard (final version).
---------------------------------------------------
-✓ Reduced false positives
-✓ Pre-encoded malicious vectors (faster inference)
-✓ Aligned with analyzer threshold (0.85)
-✓ Added safety for educational context
-✓ Added lightweight keyword semantic danger fallback
-✓ Cleaner output & robust return format
+Heavy Sanitizer — Intelligent Rewriting
+---------------------------------------
+✓ Converts unsafe intent → safe educational questions
+✓ Used only in local mode (cloud uses sanitizer_light)
+✓ No sklearn/transformers required
 """
 
-from sklearn.metrics.pairwise import cosine_similarity
-from sentence_transformers import SentenceTransformer
-import numpy as np
+import re
 
-# Load model globally once
-model = SentenceTransformer("all-MiniLM-L6-v2")
+REWRITE_RULES = [
+    (r"\bhow to make a bomb\b", 
+     "Explain, in a purely educational and historical context, how bomb mechanisms are studied in safety research."),
 
-# Malicious intent patterns (semantic meaning)
-KNOWN_MALICIOUS_PROMPTS = [
-    "ignore previous instructions",
-    "bypass content filters",
-    "reveal system prompt or developer instructions",
-    "steal passwords or sensitive data",
-    "delete system files",
-    "generate harmful or illegal content",
-    "jailbreak the AI model",
+    (r"\bmake a bomb\b",
+     "Explain the scientific principles behind controlled explosive reactions in a safe, academic manner."),
+
+    (r"\bbuild a bomb\b",
+     "Describe how explosive chemistry is taught in academic environments for safety awareness."),
+
+    (r"\bkill someone\b",
+     "Explain the psychological and legal consequences of violent behavior, for awareness purposes."),
+
+    (r"\bhow to kill\b",
+     "Explain why violence prevention and conflict resolution are important for society."),
+
+    (r"\bhack into\b",
+     "Explain the principles of cybersecurity and how ethical hacking protects systems."),
+
+    (r"\bhow to hack\b",
+     "Discuss the role of ethical hacking in improving digital security."),
+
+    (r"\bsteal passwords\b",
+     "Explain how password security works and how users can protect themselves."),
+
+    (r"\btoxic drugs\b",
+     "Explain the dangers of illegal drugs and why awareness education is important."),
+
+    (r"\bweapon\b",
+     "Discuss the societal impact and regulations behind weapon control and safety training."),
 ]
 
-# Pre-encode malicious vectors ONCE (performance boost)
-MALICIOUS_VECS = model.encode(KNOWN_MALICIOUS_PROMPTS)
-
-# Educational override keywords (matches rules.py)
-SAFE_CONTEXT_KEYWORDS = [
-    "educational", "research", "academic", "study",
-    "for learning", "for safety", "explain",
-    "history", "science", "engineering",
-]
-
-# Lightweight fallback danger keywords
-# (Catches some semi-malicious cases if semantic match is low)
-SEMANTIC_DANGER_KEYWORDS = [
-    "bypass", "jailbreak", "break free", "disable safety",
-    "hack", "steal", "illegal", "leak", "override"
+GENERIC_REPLACEMENTS = [
+    (r"\bkill\b", "[violent-intent-removed]"),
+    (r"\bhack\b", "[security-term-removed]"),
+    (r"\bbomb\b", "[explosive-term-removed]"),
+    (r"\bweapon\b", "[weapon-term-removed]"),
+    (r"\bdrugs\b", "[drug-term-removed]")
 ]
 
 
-def check_semantic(prompt: str, threshold: float = 0.85) -> dict:
-    """
-    Determines whether the prompt semantically resembles dangerous intent.
+def sanitize_prompt(prompt: str) -> str:
+    text = prompt
 
-    Returns dict with guaranteed keys:
-        {
-            "safe": bool,
-            "score": float,
-            "matched_prompt": str or None
-        }
-    """
+    # 1. Intelligent rewrite if a dangerous phrase is matched
+    for pattern, safe_version in REWRITE_RULES:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return safe_version
 
-    cleaned = prompt.strip().lower()
+    # 2. Otherwise, lightly sanitize with generic replacements
+    for pattern, repl in GENERIC_REPLACEMENTS:
+        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
 
-    # 1. Empty prompt safe
-    if not cleaned:
-        return {"safe": True, "score": 0.0, "matched_prompt": None}
-
-    # 2. Educational override
-    for word in SAFE_CONTEXT_KEYWORDS:
-        if word in cleaned:
-            return {"safe": True, "score": 0.0, "matched_prompt": None}
-
-    # 3. Keyword-based danger fallback (lightweight)
-    for kw in SEMANTIC_DANGER_KEYWORDS:
-        if kw in cleaned:
-            return {
-                "safe": False,
-                "score": threshold + 0.01,   # minimal risk score, over threshold
-                "matched_prompt": kw
-            }
-
-    # 4. Encode the user prompt meaning
-    try:
-        user_vec = model.encode([cleaned])[0].reshape(1, -1)
-    except Exception:
-        # Fail-safe: never let semantic failure break the firewall
-        return {"safe": True, "score": 0.0, "matched_prompt": None}
-
-    # 5. Compute cosine similarities
-    similarities = cosine_similarity(user_vec, MALICIOUS_VECS)[0]
-
-    max_score = float(np.max(similarities))
-    match_index = int(np.argmax(similarities))
-    matched_prompt = KNOWN_MALICIOUS_PROMPTS[match_index]
-
-    # 6. Determine safety
-    safe = max_score < threshold
-
-    return {
-        "safe": safe,
-        "score": round(max_score, 3),
-        "matched_prompt": None if safe else matched_prompt,
-    }
+    # 3. Clean spacing
+    return " ".join(text.split())
