@@ -31,29 +31,30 @@ body.dark-mode {
 
 
 /* ===========================
-   HEADER
+   HEADER (PREMIUM)
 =========================== */
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 12px;
   margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .logo {
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: -1px;
-  background: linear-gradient(90deg, #3b82f6, #22c55e);
-  background-clip: text;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  background: linear-gradient(90deg, #60a5fa, #22c55e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 @media (max-width: 600px) {
   .logo {
-    font-size: 26px;
+    font-size: 28px;
   }
 }
 
@@ -67,6 +68,35 @@ body.dark-mode {
   .rightControls {
     gap: 8px;
   }
+}
+
+
+/* ===========================
+   HEADER BUTTONS
+=========================== */
+
+/* API DOT stays first now */
+.apiDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: gray;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+
+.apiDot.online {
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+.apiDot.offline {
+  background: #dc2626;
+  box-shadow: 0 0 10px #dc2626;
+}
+
+.apiDot.checking {
+  background: #facc15;
+  box-shadow: 0 0 10px #facc15;
 }
 
 .themeToggle {
@@ -93,7 +123,7 @@ body.dark-mode {
 
 
 /* ===========================
-   CARD (Glass Panel)
+   CARD (Glass)
 =========================== */
 
 .card {
@@ -112,18 +142,46 @@ body.dark-mode {
   }
 }
 
-.fadeInUp {
-  animation: fadeSlide 0.6s ease forwards;
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes fadeSlide {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+/* ===========================
+   QUICK PROMPTS
+=========================== */
+
+.quickPrompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.quickBtn {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  color: inherit;
+  transition: 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.quickBtn:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .quickBtn {
+    flex: 1 1 calc(50% - 10px);
+    font-size: 13px;
+    padding: 8px 10px;
   }
 }
 
@@ -147,7 +205,6 @@ body.dark-mode {
 
 .promptBox:focus {
   border-color: #3b82f6;
-  outline: none;
   background: rgba(255,255,255,0.10);
 }
 
@@ -186,124 +243,62 @@ body.dark-mode {
   cursor: default;
 }
 
-@media (max-width: 600px) {
-  .analyzeBtn {
-    padding: 12px;
-    font-size: 15px;
-  }
-}
-
 
 /* ===========================
-   STATUS BADGE
+   TECH STACK BOX
 =========================== */
 
-.badge {
-  display: inline-block;
-  padding: 7px 16px;
-  border-radius: 12px;
-  font-weight: bold;
-  margin-bottom: 14px;
+.techBox {
+  margin-top: 30px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+
+.techToggle {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  color: white;
   font-size: 15px;
+  font-weight: 600;
 }
 
-.badge.safe {
-  background: #16a34a;
-  color: white;
-  box-shadow: 0 4px 12px #16a34a80;
-}
-
-.badge.unsafe {
-  background: #dc2626;
-  color: white;
-  box-shadow: 0 4px 12px #dc262680;
-}
-
-
-/* ===========================
-   JSON OUTPUT BOX
-=========================== */
-
-.jsonBox {
+.techContent {
+  margin-top: 14px;
+  padding: 12px 14px;
   background: rgba(0,0,0,0.35);
-  padding: 18px;
-  border-radius: 14px;
-  font-family: "Fira Code", monospace;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  font-size: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.12);
 }
 
-@media (max-width: 600px) {
-  .jsonBox {
-    font-size: 12px;
-    padding: 14px;
-  }
+.techContent ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.techContent li {
+  font-size: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.09);
 }
 
 
 /* ===========================
-   API STATUS DOT
+   FOOTER
 =========================== */
 
-.apiDot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: gray;
-  box-shadow: 0 0 6px rgba(0,0,0,0.3);
-}
-
-.apiDot.online {
-  background: #22c55e;
-  box-shadow: 0 0 10px #22c55e;
-}
-
-.apiDot.offline {
-  background: #dc2626;
-  box-shadow: 0 0 10px #dc2626;
-}
-
-.apiDot.checking {
-  background: #facc15;
-  box-shadow: 0 0 10px #facc15;
-}
-
-
-/* ===========================
-   SKELETON LOADER
-=========================== */
-
-.skeletonContainer {
-  margin-top: 10px;
-}
-
-.skeleton {
-  height: 16px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #2a2a2a 0%, #3a3a3a 50%, #2a2a2a 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite;
-  margin-bottom: 12px;
-}
-
-.skeleton.long {
-  height: 18px;
-}
-
-.skeleton.box {
-  height: 160px;
-  border-radius: 12px;
-}
-
-@media (max-width: 600px) {
-  .skeleton.box {
-    height: 120px;
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: 180% 0; }
-  100% { background-position: -180% 0; }
+footer {
+  margin-top: 40px;
+  text-align: center;
+  opacity: 0.65;
+  font-size: 14px;
+  padding-bottom: 20px;
 }
