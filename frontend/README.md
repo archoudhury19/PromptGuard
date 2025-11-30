@@ -1,16 +1,106 @@
-# React + Vite
+# 🌐 PromptGuard – Frontend (React + Vite)
+A fast, modern, mobile-first UI that powers **PromptGuard**, an AI Firewall for detecting unsafe, harmful, and illegal AI prompts in real time.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This frontend is built to be:
+- ⚡ Extremely fast  
+- 📱 Fully mobile-responsive  
+- 🔍 Minimal yet powerful  
+- 🔐 Integrated with a semantic + heuristic AI backend  
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# 🎯 **What is PromptGuard?**
+PromptGuard is an **AI Prompt Firewall** that analyzes user prompts before they reach an LLM.  
 
-## React Compiler
+This frontend sends prompts to the backend and visualizes:
+- Semantic similarity score  
+- Heuristic rule detection  
+- Safety verdict (SAFE / UNSAFE)  
+- Sanitized output  
+- Reasoning trace  
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All with a polished UI optimized for demos and judges.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# ✨ **Key Frontend Features**
+
+### ✔ 1. Real-Time Prompt Analyzer  
+- Clean input  
+- Auto-resizable  
+- Large green “Analyze” CTA  
+- Instant feedback from backend  
+
+---
+
+### ✔ 2. Pre-Built Dangerous Prompt Buttons  
+Useful for testing moderation:
+- 💣 Bomb Making  
+- 🔪 Harm Instructions  
+- 🛜 WiFi Hacking  
+- ⚰️ Hide a Body  
+- 🚫 Safety Bypass  
+- 💊 Illegal Drugs  
+
+---
+
+### ✔ 3. API Health Monitoring  
+Dynamic status dot:
+- 🟢 Online  
+- 🟡 Checking  
+- 🔴 Offline  
+
+Automatically checks backend every 5 seconds.
+
+---
+
+### ✔ 4. Interactive History Sidebar  
+- Saves last prompts & results  
+- Click-to-reload  
+- Smooth slide-in panel  
+- Uses `localStorage`
+
+---
+
+### ✔ 5. “Tech Stack” Transparency Box  
+Shows underlying:
+- ML models  
+- Frameworks  
+- Hosting  
+- Safety mechanisms  
+
+---
+
+### ✔ 6. Beautiful UI / UX  
+- Glassmorphism cards  
+- Gradient header  
+- Smooth fade animations  
+- Mobile-optimized  
+- Touch-friendly  
+
+---
+---
+
+# 🛠️ **Tech Stack (Frontend)**
+
+### **Framework**
+- React 18  
+- Vite  
+
+### **Styling**
+- Vanilla CSS  
+- Modern gradients + glass effect  
+- Custom animations  
+
+### **State Management**
+- React Hooks  
+- LocalStorage for history  
+
+### **Networking**
+- Fetch API  
+- Real-time polling for API health  
+
+### **Deployment**
+- Netlify / Vercel compatible  
+
+---
